@@ -9,6 +9,13 @@
 
 #include "pkt-loop-filter.h"
 
+#define BPF_PROG_LICENSE(_l) \
+	static const char _license[] SEC("license") = _l
+#define __initmap	SEC(".maps")
+#define __entry		SEC("tc")
+
+BPF_PROG_LICENSE("GPL");
+
 /* local partial kernel struct definitions with just the members we need */
 struct net {
 	__u64 net_cookie;
@@ -40,8 +47,8 @@ struct {
 	__uint(type, BPF_MAP_TYPE_LRU_HASH);
 	__type(key, struct pkt_loop_key);
 	__type(value, struct pkt_loop_data);
-	__uint(max_entries, 1); /* set from userspace before load */
-} iface_state SEC(".maps");
+	__uint(max_entries, 1024); /* set from userspace before load */
+} iface_state __initmap;
 
 int active_ifindexes[MAX_IFINDEXES] = {};
 unsigned int current_ifindex = 0;
@@ -85,8 +92,7 @@ static int parse_pkt(struct __sk_buff *skb, struct pkt_loop_key *key)
 	return ethaddr_equal(eth->h_dest, mcast_addr) ? PKT_TYPE_MULTICAST : PKT_TYPE_UNICAST;
 }
 
-SEC("tc")
-int record_egress_pkt(struct __sk_buff *skb)
+int __entry record_egress_pkt(struct __sk_buff *skb)
 {
 	struct pkt_loop_data value = { .ifindex = skb->ifindex }, *v;
 	struct pkt_loop_key key;
@@ -109,8 +115,7 @@ out:
 	return TC_ACT_OK;
 }
 
-SEC("tc")
-int filter_ingress_pkt(struct __sk_buff *skb)
+int __entry filter_ingress_pkt(struct __sk_buff *skb)
 {
 	struct pkt_loop_data *value;
 	struct pkt_loop_key key;
@@ -153,5 +158,3 @@ int BPF_KPROBE(handle_device_notify, unsigned long val, struct netdev_notifier_i
 
 	return 0;
 }
-
-char _license[] SEC("license") = "GPL";
