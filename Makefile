@@ -50,7 +50,9 @@ check_submodule:
 archive: distclean
 	$(eval GITSHASH := $(shell git log --format=%h HEAD^..HEAD))
 	$(eval GITHASH  := $(shell git log --format=%H HEAD^..HEAD))
+	$(eval GITCDATE := $(shell git log --format=%cs -1 HEAD | sed -e 's:-::g'))
 	git archive --format=tar.gz --prefix=bpf-examples-$(GITSHASH)/ -o ./bpf-examples-$(GITSHASH).tar.gz $(GITHASH)
+	sed -e "s:%COMMITDATE%:$(GITCDATE):g" -e "s:%SHORTCOMMIT%:$(GITSHASH):g" pkt-loop-filter/bond-slb-bpf.spec.tpl >bond-slb-bpf.spec
 
 clobber:
 	touch config.mk

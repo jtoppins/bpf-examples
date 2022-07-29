@@ -5,4 +5,5 @@ compile_commands.json
 *.o
 *.skel.h
 *.tar.gz
+*.spec
 lib/libbpf-install/
