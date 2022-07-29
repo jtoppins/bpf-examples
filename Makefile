@@ -13,8 +13,8 @@ MAKEFLAGS += --no-print-directory
 Q = @
 endif
 
-SUBDIRS := encap-forward lsm-nobpf
-.PHONY: check_submodule help clobber distclean clean $(SUBDIRS)
+SUBDIRS := encap-forward lsm-nobpf pkt-loop-filter
+.PHONY: check_submodule help archive clobber distclean clean $(SUBDIRS)
 
 all: lib $(SUBDIRS)
 
@@ -47,12 +47,18 @@ check_submodule:
 		echo "" ;\
 	fi\
 
+archive: distclean
+	$(eval GITSHASH := $(shell git log --format=%h HEAD^..HEAD))
+	$(eval GITHASH  := $(shell git log --format=%H HEAD^..HEAD))
+	git archive --format=tar.gz --prefix=bpf-examples-$(GITSHASH)/ -o ./bpf-examples-$(GITSHASH).tar.gz $(GITHASH)
+
 clobber:
 	touch config.mk
 	$(MAKE) clean
 	rm -f config.mk cscope.* compile_commands.json
 
 distclean: clobber
+	$(Q)rm -f *.tar.gz
 
 clean: check_submodule
 	$(Q)for i in $(SUBDIRS); \

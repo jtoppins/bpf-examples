@@ -1,0 +1,7 @@
+#BOND_SLB_ENABLE=false
+# Set BOND_SLB_IFACES to the list of bond interfaces you want the system
+# to apply the additional filters too, example:
+# BOND_SLB_IFACES="bond1,bond2,bond4"
+#BOND_SLB_IFACES=""
+#BOND_SLB_DEBUG=false
+
